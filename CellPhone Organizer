@@ -1,0 +1,465 @@
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+
+public class CellList 
+{
+	private CellNode head;
+	private int listSize;
+	
+	/*
+	 * Cell Node Inner Class: Takes two parameters a CellPhone object and a CellNode pointer. 
+	 */
+	
+	public class CellNode
+	{
+		private CellPhone cellular;
+		private CellNode nextNode;
+		
+		public CellNode ()
+		{
+			cellular = null;
+			nextNode = null;
+		}
+		
+		public CellNode (CellPhone cPhone, CellNode cNode)
+		{
+			this.cellular = new CellPhone(cPhone, cPhone.getSerialNum());
+			this.nextNode = cNode;
+		}
+		
+		public CellNode (CellNode cNode)
+		{
+			this.cellular = new CellPhone(cNode.getCellPhone(), cNode.getCellPhone().getSerialNum());
+			this.nextNode = new CellNode(cNode.getCellPhone(), cNode.getCellNode());
+		}
+		
+		public CellNode CellNodeClone ()
+		{
+			return new CellNode (this);			
+		}
+		
+		public CellPhone getCellPhone () {return this.cellular;}
+		
+		public void setCellPhone (CellPhone cPhone) {this.cellular = new CellPhone(cPhone, cPhone.getSerialNum());}
+			
+		public CellNode getCellNode () {return this.nextNode;}
+		
+		public void setCellNode (CellNode cNode) {this.nextNode = new CellNode (cNode.getCellPhone(), cNode.getCellNode());}
+	}
+	
+	public CellList ()
+	{
+		head = null;
+		listSize = 0;
+	}
+	
+	public void addToStart (CellPhone nextCell)
+	{
+		head = new CellNode (nextCell, head);
+		listSize++;
+	}
+	
+	public void deleteFromStart ()
+	{
+		Scanner userIn = new Scanner (System.in);
+//		String userResponse;
+		
+		if (this.head == null)
+			System.out.println("This list is empty. Nothing to delete.");
+				
+		if (this.head.nextNode == null)
+		{
+			this.head = null;
+			userIn.close();
+			return;
+		}
+		
+		CellNode t = this.head;
+		this.head = this.head.nextNode;
+		t.nextNode = null;
+		t = null;
+		this.listSize--;
+		System.out.println("Head node has been deleted.");
+		
+		userIn.close();
+	}
+	
+  public CellList (CellList listCopy)
+	{
+		if (listCopy.head == null)
+			System.out.println("No content to copy.");
+		
+		long newSerialNum = (long) (Math.random()*10000000);;
+		
+		CellNode target = listCopy.head;
+		CellNode copy = null;
+		CellNode end = null;
+		
+		copy = new CellNode (listCopy.head.getCellPhone().clone(newSerialNum), null);
+		this.listSize++;
+		
+		end = copy;
+		target = target.nextNode;
+				
+		while (target != null)
+		{	
+			newSerialNum = (long) (Math.random()*10000000);
+			
+			end.nextNode = new CellNode (target.getCellPhone().clone(newSerialNum), null);
+			System.out.println(end.getCellPhone());
+			System.out.println("foo");
+			end = end.nextNode;
+			target = target.nextNode;
+			this.listSize++;
+		}
+		
+		
+	}
+		
+	public void insertAtIndex (CellPhone nextCell, int index) throws NoSuchElementException
+	{
+		if (index < 0 || index > this.listSize - 1)
+			throw new NoSuchElementException ();
+		
+		if (this.head == null)
+		{
+			this.addToStart(nextCell);
+			System.out.println("Added new cell phone to start.");
+			return;
+		}
+		
+		CellNode t = this.head;
+		int counter = 1;
+		
+		if (index == 0)
+		{
+			this.head = new CellNode(nextCell.clone((long) Math.random()), this.head);
+			return;
+		}
+		
+		while (t != null && counter != index) 
+		{
+			t = t.nextNode;
+			counter++;
+		}
+		
+		t.nextNode = new CellNode(nextCell.clone((long) Math.random()), t.nextNode);
+		this.listSize++;
+		System.out.println("One new node has been added. List size is one node larger.");
+	}
+
+	public void deleteAtIndex (int index) throws NoSuchElementException
+	{
+		if (index < 0 || index > this.listSize - 1)
+			throw new NoSuchElementException ();
+				
+		if (this.head == null)
+		{
+			System.out.println("The contents of this list is: " 
+			+ this.listSize + "\nCannot remove further nodes.");
+		}
+		
+		CellNode t = this.head;
+		int counter = 1;
+		
+		if (index == 0)
+		{
+			this.head = t.nextNode;
+			return;
+		}
+			
+		while (t != null && counter != index)
+		{
+			t = t.nextNode;
+			counter++;
+		}
+		
+		t.nextNode = t.nextNode.nextNode;
+		this.listSize--;
+		System.out.println("One node hs been removed. List size is one node smaller.");
+	}
+	
+	public void replaceAtIndex (CellPhone newCell, int index)
+	{
+		if (index < 0 || index > this.listSize - 1)
+			return;
+		
+		if (this.head == null)
+		{
+			System.out.println("List is empty. Adding new node.");
+			this.addToStart(newCell);
+			return;
+		}
+		
+		if (index == 0)
+		{
+			this.head = new CellNode (newCell, this.head);
+			return;
+		}
+		
+		CellNode t = head;
+		int counter = 1;
+		
+		while (t.nextNode != null && counter != index)
+		{
+			t = t.nextNode;
+			counter++;
+		}
+		
+		t.nextNode = new CellNode (newCell, t.nextNode);
+		System.out.println("No change in list size.");
+	}
+	
+	//HUGE privacy leak, must fix.
+	public CellNode find (long serialNum)
+	{
+		int counter = 0;
+		
+		if (this.head == null)
+		{
+			System.out.println("Item could not be found.");
+			return null;
+		}
+		
+		CellNode t = this.head;
+		CellNode clone;
+		
+		while (t != null)
+		{
+			counter++;
+			if (t.getCellPhone().getSerialNum() == serialNum)
+			{
+				System.out.println(counter + " iterations to find this item.");
+				clone = t.CellNodeClone();
+				return clone;
+			}
+			t = t.nextNode;
+		}
+		
+		System.out.println(counter + " iterations to find... nothing.");
+		return null;
+	}
+	
+	public void showContents ()
+	{
+		if (head == null)
+			System.out.println("No contents to show. This list is empty.");
+		
+		CellNode t = head; 
+		
+		System.out.println("This list's size is: " + this.listSize);
+		
+		while (t != null)
+		{
+			System.out.println(t.getCellPhone().toString());
+			t = t.nextNode;
+		}
+		
+		System.out.println("End of list.");
+	}
+	
+	public boolean contains (long serialNum)
+	{
+		if (this.head == null)
+		{
+			System.out.println("Add items to your list before using the methods.");
+			return false;
+		}
+		
+		CellNode t = this.head;
+		
+		while (t != null && t.getCellPhone().getSerialNum() != serialNum)
+		{
+			t = t.nextNode;
+		}
+		
+		if (t == null)
+		{
+			System.out.println("Item could not be found.");
+			return false;
+		}
+		
+		System.out.println("Item is in the list.");
+		return true;
+	}
+	
+	public boolean equals (Object O)
+	{
+		boolean isEqual = true;
+
+		if (this.getClass().equals(O.getClass()))
+		{
+			CellList l1 = (CellList) O;
+			
+			if (this.head == null || l1.head == null)
+			{
+				System.out.println("One or both of these lists are empty.");
+				return false;
+			}
+			
+			CellNode t1 = this.head;
+			CellNode t2 = l1.head;
+			
+			while (t1 != null || t2 != null)
+			{
+				if (t1.getCellPhone().equals(t2.getCellPhone()))
+				{
+					t1 = t1.nextNode;
+					t2 = t2.nextNode;
+				}
+				else 
+				{
+					isEqual = false;
+					break;
+				}
+			}
+			return isEqual;
+		}
+		else
+		{
+			System.out.println("Cannot compare apples to oranges.");
+			return false;
+		}
+	}
+	
+	public CellNode getHead () {return this.head;}
+	
+	public void setHead (CellNode newHead) {this.head = newHead;}
+	
+	public int getListSize () {return this.listSize;}
+	
+		
+}
+
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
+public class CellListUtilization {
+
+	public static void main(String[] args) 
+	{
+		CellList CellList1 = new CellList();
+		CellList CellList2 = new CellList();
+		CellList CellList3 = new CellList();
+		
+		Scanner listScanner = null;
+		long l;
+		String b;
+		int y;
+		double p;
+		
+		try 
+		{
+			listScanner = new Scanner (new FileInputStream ("Cell_Info.txt"));
+			while (listScanner.hasNext())
+			{
+				l = listScanner.nextInt();
+				b = listScanner.next();
+				p = listScanner.nextDouble();
+				y = listScanner.nextInt();				
+				
+				CellList1.addToStart(new CellPhone(l, b, y, p));
+				CellList3.addToStart(new CellPhone(l, b, y, p));
+			}
+		}
+		catch (FileNotFoundException fnfe)
+		{
+			System.out.println("Couldn't find the designated file.");
+		}
+		finally
+		{
+//			CellList1.deleteFromStart();
+//			CellList1.deleteAtIndex(1);
+//			CellList1.deleteAtIndex(3);
+//			CellList1.addToStart(new CellPhone());
+//			CellList1.insertAtIndex(new CellPhone(), 5); 
+//			CellList1.showContents();
+			
+			CellList Copy = new CellList(CellList1);
+			
+			Copy.showContents();
+		}
+	}
+
+}
+
+
+public class CellPhone implements CloneableCellPhone
+{
+	private long serialNum;
+	private String brand; //Always one word
+	private int year;
+	private double price;
+	
+	public CellPhone ()
+	{
+		serialNum = 0000;
+		brand = "NoName";
+		year = 2000;
+		price = 120;
+	}
+	
+	public CellPhone (long sNum, String brand, int year, double price)
+	{
+		this.serialNum = sNum;
+		this.brand = brand;
+		this.year = year;
+		this.price = price;
+	}
+	
+	public CellPhone (CellPhone copyTarget, long sNum)
+	{
+		this.serialNum = sNum;
+		this.brand = copyTarget.getBrand();
+		this.year = copyTarget.getYear();
+		this.price = copyTarget.getPrice();
+	}
+	
+	public CellPhone clone (long sNum)
+	{
+		return new CellPhone (this, sNum);
+	}
+	
+	public String toString ()
+	{
+		return String.format("SERIALNUM [%07d] BRANDNAME [%-12s] YEAR [%d] PRICE [%f] ------> ", this.getSerialNum(), this.getBrand(), this.getYear(), this.getPrice());
+	}
+	
+	public boolean equals (Object O)
+	{
+		if (O != null && O.getClass().equals(this.getClass()))
+		{
+			CellPhone P = (CellPhone) O;
+			
+			return (P.getBrand().equals(this.getBrand()) && P.getYear() == this.getYear() && P.getPrice() == this.getPrice());
+		} else
+			
+			return false;
+	}
+	
+	public long getSerialNum ()	{return this.serialNum;}
+	
+	public void setSerialNum (long sNum) {this.serialNum = sNum;}
+	
+	public String getBrand () {return this.brand;}
+	
+	public void setBrand (String brand) {this.brand = brand;}
+	
+	public int getYear () {return this.year;}
+	
+	public void setYear (int year) {this.year = year;}
+	
+	public double getPrice () {return this.price;}
+	
+	public void setPrice (double price) {this.price = price;}
+	
+	
+}
+
+
+public interface CloneableCellPhone extends Cloneable 
+{
+	public Object clone(long l);
+}
